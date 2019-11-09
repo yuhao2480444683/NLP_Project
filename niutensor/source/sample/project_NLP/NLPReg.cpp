@@ -85,28 +85,28 @@ namespace project_NLP
 		NLPRegNet net;
 		NLPRegModel grad;
 		InitGrad(model, grad);		//main开始时自定义的模型参数，用model初始化grad
-		for (int epochIndex = 0; epochIndex < nEpoch; ++epochIndex)
+		for (int epochIndex = 0; epochIndex < nEpoch; ++epochIndex)	//循环训练
 		{
 			printf("epoch %d\n", epochIndex);
 			float totalLoss = 0;
 			if ((epochIndex + 1) % 50 == 0)			//这里对训练次数进行了处理，50次之后学习率除3？
 				learningRate /= 3;
-			for (int i = 0; i < inputList.count; ++i)
+			for (int i = 0; i < inputList.count; ++i)	
 			{
 				XTensor *input = inputList.GetItem(i);
 				XTensor *gold = goldList.GetItem(i);
-				Forword(*input, model, net);
+				Forword(*input, model, net);	//正向传播
 				//output.Dump(stderr);
 				XTensor loss;
-				MSELoss(net.output, *gold, loss);
+				MSELoss(net.output, *gold, loss);	//计算误差
 				//loss.Dump(stderr);
-				totalLoss += loss.Get1D(0);
+				totalLoss += loss.Get1D(0);		//总误差
 
-				Backward(*input, *gold, model, grad, net);
+				Backward(*input, *gold, model, grad, net);	//反馈
 
-				Update(model, grad, learningRate);
+				Update(model, grad, learningRate);	
 
-				CleanGrad(grad);
+				CleanGrad(grad);	//进行下一次做准备
 
 			}
 			printf("loss %f\n", totalLoss / inputList.count);
@@ -114,25 +114,25 @@ namespace project_NLP
 	}
 	void Forword(XTensor &input, NLPRegModel &model, NLPRegNet &net)
 	{
-		net.hidden_state1 = MatrixMul(input, model.weight1);
-		net.hidden_state2 = net.hidden_state1 + model.b;
-		net.hidden_state3 = HardTanH(net.hidden_state2);
-		net.output = MatrixMul(net.hidden_state3, model.weight2);
+		net.hidden_state1 = MatrixMul(input, model.weight1);		//第一层计算
+		net.hidden_state2 = net.hidden_state1 + model.b;			//第一层进行偏移
+		net.hidden_state3 = HardTanH(net.hidden_state2);			//这一步没看懂
+		net.output = MatrixMul(net.hidden_state3, model.weight2);	//第二层进行状态转换，输出预测值
 	}
 
-	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)
+	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//计算损失
 	{
 		XTensor tmp = output - gold;
 		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
 	}
 
-	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)
+	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		//反向损失？是二倍关系么...
 	{
 		XTensor tmp = output - gold;
 		grad = tmp * 2;
 	}
 
-	void Backward(XTensor &input, XTensor &gold, NLPRegModel &model, NLPRegModel &grad, NLPRegNet &net)
+	void Backward(XTensor &input, XTensor &gold, NLPRegModel &model, NLPRegModel &grad, NLPRegNet &net) //超出理解范围了=。=
 	{
 		XTensor lossGrad;
 		XTensor &dedw2 = grad.weight2;
@@ -145,21 +145,21 @@ namespace project_NLP
 		dedw1 = MatrixMul(input, X_NOTRANS, dedb, X_TRANS);
 	}
 
-	void Update(NLPRegModel &model, NLPRegModel &grad, float learningRate)
+	void Update(NLPRegModel &model, NLPRegModel &grad, float learningRate)    //更新训练模型
 	{
-		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);
+		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);	//上一次的权重加本次训练的权重，最后减掉训练后的学习率
 		model.weight2 = Sum(model.weight2, grad.weight2, -learningRate);
 		model.b = Sum(model.b, grad.b, -learningRate);
 	}
 
-	void CleanGrad(NLPRegModel &grad)
+	void CleanGrad(NLPRegModel &grad)	//清空grad的w1，w2和b
 	{
 		grad.b.SetZeroAll();
 		grad.weight1.SetZeroAll();
 		grad.weight2.SetZeroAll();
 	}
 
-	void Test(float *testData, int testDataSize, NLPRegModel &model)
+	void Test(float *testData, int testDataSize, NLPRegModel &model)	//使用模型进行预测
 	{
 		NLPRegNet net;
 		XTensor*  inputData = NewTensor2D(1, 1, X_FLOAT, model.devID);
