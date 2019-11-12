@@ -28,7 +28,7 @@
 #include "../sample/fnnlm/FNNLM.h"
 #include "../sample/transformer/Transformer.h"
 #include "../sample/regression/FNNReg.h"
-#include "../sample/project_NLP/NLPReg.h"
+#include "../sample/project_NLP/Reg/NLPReg.h"
 
 //#define CRTDBG_MAP_ALLOC
 //#include <stdlib.h>

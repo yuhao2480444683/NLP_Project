@@ -2,7 +2,7 @@
 #include "NLPReg.h"
 
 //未在头文件包含
-#include "../../tensor/function/FHeader.h"
+#include "../../../tensor/function/FHeader.h"
 
 namespace project_NLP
 {

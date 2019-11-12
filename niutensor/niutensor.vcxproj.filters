@@ -245,7 +245,7 @@
     <ClInclude Include="source\tensor\function\Softmax.cuh" />
     <ClInclude Include="source\tensor\loss\CrossEntropy.cuh" />
     <ClInclude Include="source\sample\regression\FNNReg.h" />
-    <ClInclude Include="source\sample\project_NLP\NLPReg.h" />
+    <ClInclude Include="source\sample\project_NLP\Reg\NLPReg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\network\Main.cpp">
@@ -767,7 +767,10 @@
     <ClCompile Include="source\sample\regression\FNNReg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="source\sample\project_NLP\NLPReg.cpp">
+    <ClCompile Include="source\sample\project_NLP\Reg\NLPReg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sample\project_NLP\XOROperate\XOROperate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

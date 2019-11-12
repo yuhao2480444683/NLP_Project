@@ -1,6 +1,6 @@
-#include "../../tensor/XGlobal.h"
-#include "../../tensor/XTensor.h"
-#include "../../tensor/core/CHeader.h"
+#include "../../../tensor/XGlobal.h"
+#include "../../../tensor/XTensor.h"
+#include "../../../tensor/core/CHeader.h"
 using namespace nts;
 
 namespace project_NLP
