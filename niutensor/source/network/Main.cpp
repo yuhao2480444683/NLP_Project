@@ -48,7 +48,7 @@ int main( int argc, const char ** argv )
 {
     //_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
     //_CrtSetBreakAlloc(2708);
-
+	
     if(argc > 1 && !strcmp(argv[1], "-test"))
         Test();
     else if(argc > 1 && !strcmp(argv[1], "-fnnlm"))
@@ -66,6 +66,8 @@ int main( int argc, const char ** argv )
         fprintf(stderr, "Run this program with \"-test\" for unit test!\n");
         fprintf(stderr, "Or run this program with \"-fnnlm\" for sample FNNLM!\n");
         fprintf(stderr, "Or run this program with \"-t2t\" for sample Transformer!\n");
+		fprintf(stderr, "Or run this program with \"-nlpreg\" for my project!\n");
+
     }
 
     //_CrtDumpMemoryLeaks();
