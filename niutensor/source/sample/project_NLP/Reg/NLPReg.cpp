@@ -45,9 +45,9 @@ namespace project_NLP
 
 	void Init(NLPRegModel &model)
 	{
-		InitTensor2D(&model.weight1, 1, model.h_size, X_FLOAT, model.devID);	//第一层张量计算式
-		InitTensor2D(&model.weight2, model.h_size, 1, X_FLOAT, model.devID);	//第二层张量计算式
-		InitTensor2D(&model.b, model.h_size, 1, X_FLOAT, model.devID);			//修正函数？
+		InitTensor2D(&model.weight1, 1, model.h_size, X_FLOAT, model.devID);	//初始化模型中的tensor  w1
+		InitTensor2D(&model.weight2, model.h_size, 1, X_FLOAT, model.devID);	//初始化模型中的tensor  w2
+		InitTensor2D(&model.b, model.h_size, 1, X_FLOAT, model.devID);			//初始化模型中的tensor  b
 		model.weight1.SetDataRand(-minmax, minmax);		//设置范围为（-0.01，0.01）
 		model.weight2.SetDataRand(-minmax, minmax);
 		model.b.SetZeroAll();		//修正值全部初始化为0

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "XOROperate.h"
 
 #include "../../../tensor/function/FHeader.h"
 
@@ -45,7 +46,13 @@ namespace project_NLP
 			std::cout << trainDataY[i][0] << trainDataY[i][1] << trainDataY[i][2] << std::endl;
 		}
 
-		//todo 训练模型
+		
+		//初始化模型，给定参数
+		//训练模型
+
+
+
+		
 
 		float testDataX[testDataSize][6] = { {0,0,0,0,0,0} ,
 											 {0,0,1,0,1,0} ,
@@ -60,5 +67,20 @@ namespace project_NLP
 		return 0;
 	}
 
+	void Init(XOROperateModel &model)
+	{
+		InitTensor2D(&model.weight1, 1, model.n_hidden, X_FLOAT, model.devID);		//初始化模型中的tensor  w1
+		InitTensor2D(&model.weight2, model.n_hidden, 1, X_FLOAT, model.devID);		//初始化模型中的tensor  w2
+		InitTensor2D(&model.b1, model.n_hidden, 1, X_FLOAT, model.devID);			//初始化模型中的tensor  b1
+		InitTensor2D(&model.b2, model.n_hidden, 1, X_FLOAT, model.devID);			//初始化模型中的tensor  b2
+		
+		// todo 使用softmax损失函数
+		/*
+		model.weight1.SetDataRand(-minmax, minmax);		
+		model.weight2.SetDataRand(-minmax, minmax);
+		model.b.SetZeroAll();	
+		*/
+		printf("Initialization  complete.\n");
+	}
 
 }
