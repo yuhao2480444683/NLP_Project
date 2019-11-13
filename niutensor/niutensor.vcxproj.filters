@@ -246,6 +246,7 @@
     <ClInclude Include="source\tensor\loss\CrossEntropy.cuh" />
     <ClInclude Include="source\sample\regression\FNNReg.h" />
     <ClInclude Include="source\sample\project_NLP\Reg\NLPReg.h" />
+    <ClInclude Include="source\sample\project_NLP\XOROperate\XOROperate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\network\Main.cpp">

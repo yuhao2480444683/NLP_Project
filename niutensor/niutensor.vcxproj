@@ -34,6 +34,7 @@
     <ClInclude Include="source\network\XNoder.h" />
     <ClInclude Include="source\sample\fnnlm\FNNLM.h" />
     <ClInclude Include="source\sample\project_NLP\Reg\NLPReg.h" />
+    <ClInclude Include="source\sample\project_NLP\XOROperate\XOROperate.h" />
     <ClInclude Include="source\sample\regression\FNNReg.h" />
     <ClInclude Include="source\sample\transformer\T2TAttention.h" />
     <ClInclude Include="source\sample\transformer\T2TBatchLoader.h" />

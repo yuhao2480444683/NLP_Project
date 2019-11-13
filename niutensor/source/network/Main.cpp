@@ -29,6 +29,7 @@
 #include "../sample/transformer/Transformer.h"
 #include "../sample/regression/FNNReg.h"
 #include "../sample/project_NLP/Reg/NLPReg.h"
+#include "../sample/project_NLP/XOROperate/XOROperate.h"
 
 //#define CRTDBG_MAP_ALLOC
 //#include <stdlib.h>
@@ -60,6 +61,8 @@ int main( int argc, const char ** argv )
         FNNRegMain(argc - 1, argv + 1);
 	else if (argc > 1 && !strcmp(argv[1], "-nlpreg"))
 		NLPRegMain(argc - 1, argv + 1);
+	else if (argc > 1 && !strcmp(argv[1], "-xoroperate"))
+		XOROperateMain(argc - 1, argv + 1);
     else{
         fprintf(stderr, "Thanks for using NiuTrans.Network! This is a library for building\n");
         fprintf(stderr, "neural networks in an easy way. \n\n");
