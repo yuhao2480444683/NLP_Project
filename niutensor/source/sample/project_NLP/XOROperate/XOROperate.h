@@ -1,6 +1,7 @@
 #include "../../../tensor/XGlobal.h"
 #include "../../../tensor/XTensor.h"
 #include "../../../tensor/core/CHeader.h"
+#include "../../../tensor/loss/CrossEntropy.h"
 using namespace nts;
 
 namespace xorOperate

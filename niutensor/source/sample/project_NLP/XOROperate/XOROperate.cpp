@@ -195,14 +195,12 @@ namespace xorOperate
 		net.hidden_state2 = net.hidden_state1 + model.b1;			
 		net.hidden_state3 = Rectify(net.hidden_state2);
 		net.hidden_state4 = MatrixMul(net.hidden_state3, model.weight2);
-		net.hidden_state5 = net.hidden_state4 + model.b2;
-		net.output = Rectify(net.hidden_state5);
+		net.output = net.hidden_state4 + model.b2;
 	}
 
 	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//计算损失
 	{
-		XTensor tmp = output - gold;
-		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
+		loss = CrossEntropy(output, gold);
 	}
 
 	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		
@@ -220,7 +218,10 @@ namespace xorOperate
 		XTensor &dedw1 = grad.weight1;
 
 		MSELossBackword(net.output, gold, lossGrad);
-		MatrixMul(net.hidden_state3, X_TRANS, lossGrad, X_NOTRANS, dedw2);
+		_RectifyBackward(&net.hidden_state5, &net.hidden_state4, &lossGrad, &dedb2);
+
+
+		MatrixMul(net.hidden_state5, X_TRANS, lossGrad, X_NOTRANS, dedw2);
 
 		/*
 		MSELossBackword(net.output, gold, lossGrad);
@@ -229,6 +230,14 @@ namespace xorOperate
 		_RectifyBackward(&net.hidden_state3, &net.hidden_state2, &dedy, &dedb);
 		dedw1 = MatrixMul(input, X_NOTRANS, dedb, X_TRANS);
 		*/
+	}
+
+	void Update(XOROperateModel &model, XOROperateModel &grad, float learningRate)    //更新训练模型
+	{
+		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);	//上一次的权重加本次训练的权重，最后减掉训练后的学习率
+		model.weight2 = Sum(model.weight2, grad.weight2, -learningRate);
+		model.b1 = Sum(model.b1, grad.b1, -learningRate);
+		model.b2 = Sum(model.b2, grad.b2, -learningRate);
 	}
 
 	void CleanGrad(XOROperateModel &grad)	//清空grad的w1，w2和b

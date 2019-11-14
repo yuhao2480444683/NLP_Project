@@ -114,19 +114,19 @@ namespace nlpreg
 	}
 	void Forword(XTensor &input, NLPRegModel &model, NLPRegNet &net)
 	{
-		net.hidden_state1 = MatrixMul(input, model.weight1);		//第一层计算
-		net.hidden_state2 = net.hidden_state1 + model.b;			//第一层进行偏移
-		net.hidden_state3 = HardTanH(net.hidden_state2);			//这一步没看懂
-		net.output = MatrixMul(net.hidden_state3, model.weight2);	//第二层进行状态转换，输出预测值
+		net.hidden_state1 = MatrixMul(input, model.weight1);		
+		net.hidden_state2 = net.hidden_state1 + model.b;			
+		net.hidden_state3 = HardTanH(net.hidden_state2);			
+		net.output = MatrixMul(net.hidden_state3, model.weight2);	
 	}
 
-	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//计算损失
+	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		
 	{
 		XTensor tmp = output - gold;
 		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
 	}
 
-	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		//反向损失？是二倍关系么...
+	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		
 	{
 		XTensor tmp = output - gold;
 		grad = tmp * 2;
