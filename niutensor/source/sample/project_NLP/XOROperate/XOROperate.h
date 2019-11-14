@@ -3,7 +3,7 @@
 #include "../../../tensor/core/CHeader.h"
 using namespace nts;
 
-namespace project_NLP
+namespace xorOperate
 {
 	struct XOROperateModel
 	{
@@ -20,6 +20,20 @@ namespace project_NLP
 		int devID;   //  -1£∫CPU  0:0∫≈œ‘ø®
 	};
 	
+	struct XOROperateNet
+	{
 
+		XTensor hidden_state1;
+
+		XTensor hidden_state2;
+
+		XTensor hidden_state3;
+
+		XTensor hidden_state4;
+
+		XTensor hidden_state5;
+
+		XTensor output;
+	};
 	int XOROperateMain(int argc, const char ** argv);
 }

@@ -20,6 +20,7 @@
  */
 
 #include <stdio.h>
+#include <iostream>
 #include "XNet.h"
 #include "../tensor/XUtility.h"
 #include "../tensor/function/FHeader.h"
@@ -43,13 +44,15 @@ using namespace nts;
 using namespace fnnlm;
 using namespace transformer;
 using namespace fnnreg;
-using namespace project_NLP;
+using namespace nlpreg;
+using namespace xorOperate;
 
 int main( int argc, const char ** argv )
 {
     //_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
     //_CrtSetBreakAlloc(2708);
-	
+	std::cout << argv[1] << std::endl;
+
     if(argc > 1 && !strcmp(argv[1], "-test"))
         Test();
     else if(argc > 1 && !strcmp(argv[1], "-fnnlm"))

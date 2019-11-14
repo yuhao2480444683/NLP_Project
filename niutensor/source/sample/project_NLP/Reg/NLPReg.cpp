@@ -4,7 +4,7 @@
 //未在头文件包含
 #include "../../../tensor/function/FHeader.h"
 
-namespace project_NLP
+namespace nlpreg
 {
 
 	float learningRate = 0.3F;            // learning rate
@@ -132,7 +132,7 @@ namespace project_NLP
 		grad = tmp * 2;
 	}
 
-	void Backward(XTensor &input, XTensor &gold, NLPRegModel &model, NLPRegModel &grad, NLPRegNet &net) //超出理解范围了=。=
+	void Backward(XTensor &input, XTensor &gold, NLPRegModel &model, NLPRegModel &grad, NLPRegNet &net) 
 	{
 		XTensor lossGrad;
 		XTensor &dedw2 = grad.weight2;

@@ -3,7 +3,7 @@
 #include "../../../tensor/core/CHeader.h"
 using namespace nts;
 
-namespace project_NLP
+namespace nlpreg
 {
 	struct NLPRegModel   // 回归模型类
 	{
