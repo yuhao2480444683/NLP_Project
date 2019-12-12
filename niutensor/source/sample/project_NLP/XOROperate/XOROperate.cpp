@@ -13,10 +13,13 @@ namespace xorOperate
 	float minmax = 0.01F;                 // range [-p,p] for parameter initialization
 	
 	void Init(XOROperateModel &model);		  //初始化参数
+	void InitGrad(XOROperateModel &model, XOROperateModel &grad);
 	void Forword(XTensor &input, XOROperateModel &model, XOROperateNet &net);
+	void Update(XOROperateModel &model, XOROperateModel &grad, float learningRate);
 	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss);
+	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad);
 	void Backward(XTensor &input, XTensor &gold, XOROperateModel &model, XOROperateModel &grad, XOROperateNet &net);
-
+	void CleanGrad(XOROperateModel &grad);
 
 
 	int XOROperateMain(int argc, const char ** argv)    //项目主函数入口，传入Main.cpp
@@ -44,13 +47,7 @@ namespace xorOperate
 				trainDataX[i * 8 + j][5] = dic_data[j][2];// 后三位为j
 			}
 		}
-		/*
-		std::cout << "trainDataX : ";
-		for (int i = 0; i < 64; ++i)
-		{
-			std::cout << trainDataX[i][0] << trainDataX[i][1] << trainDataX[i][2] << trainDataX[i][3] << trainDataX[i][4] << trainDataX[i][5] << std::endl;
-		}
-		*/
+	
 
 		float trainDataY[dataSize][8] = {};
 		for (int i = 0; i < 64; ++i)
@@ -84,22 +81,6 @@ namespace xorOperate
 			else if (dataY[i][0] == 1 && dataY[i][1] == 1 && dataY[i][2] == 1)
 				trainDataY[i][7] = 1;
 		}
-		/*
-		std::cout << "dataY : " << std::endl;
-		for (int i = 0; i < 64; ++i)
-		{
-			std::cout << dataY[i][0] << dataY[i][1] << dataY[i][2] << std::endl;
-		}
-		std::cout << "trainDataY : " << std::endl;
-		for (int i = 0; i < 64; ++i)
-		{
-			for (int j = 0; j < 8; ++j)
-			{
-				std::cout << trainDataY[i][j];
-			}
-			std::cout << std::endl;
-		}
-		*/
 
 		//训练模型
 		printf("prepare data for train:\n");
@@ -135,7 +116,8 @@ namespace xorOperate
 		{
 			printf("epoch %d\n", epochIndex);
 			float totalLoss = 0;
-			
+			if ((epochIndex + 1) % 50 == 0)			
+				learningRate /= 3;
 			for (int i = 0; i < inputList.count; ++i)
 			{
 				XTensor *input = inputList.GetItem(i);
@@ -143,9 +125,17 @@ namespace xorOperate
 				Forword(*input, model, net);
 				XTensor loss;
 				MSELoss(net.output, *gold, loss);	//计算误差
+				totalLoss += loss.Get1D(0);
+				printf("准备反向\n");
+				Backward(*input, *gold, model, grad, net);
+				printf("准备更新\n");
+				Update(model, grad, learningRate);
+				printf("准备清理\n");
+				CleanGrad(grad);
+
 			}
 
-			
+			printf("loss %f\n", totalLoss / inputList.count);
 
 		}
 
@@ -157,7 +147,8 @@ namespace xorOperate
 											 {1,1,1,0,0,0} }; //测试集
 
 
-		//todo 测试模型准确率
+		Test(testDataX, testDataSize, model);				//使用模型进行预测
+		return 0;
 
 
 		return 0;
@@ -191,16 +182,19 @@ namespace xorOperate
 
 	void Forword(XTensor &input, XOROperateModel &model, XOROperateNet &net)
 	{
-		net.hidden_state1 = MatrixMul(input, model.weight1);		
-		net.hidden_state2 = net.hidden_state1 + model.b1;			
+		net.hidden_state1 = MatrixMul(input, model.weight1);	
+		net.hidden_state2 = net.hidden_state1 + model.b1;	
 		net.hidden_state3 = Rectify(net.hidden_state2);
 		net.hidden_state4 = MatrixMul(net.hidden_state3, model.weight2);
-		net.output = net.hidden_state4 + model.b2;
+		net.hidden_state5 = net.hidden_state4 + model.b2;
+		net.output = Rectify(net.hidden_state5);
 	}
 
 	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//计算损失
 	{
-		loss = CrossEntropy(output, gold);
+		XTensor tmp = output - gold;
+		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
+
 	}
 
 	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		
@@ -217,26 +211,30 @@ namespace xorOperate
 		XTensor &dedb1 = grad.b1;
 		XTensor &dedw1 = grad.weight1;
 
+
 		MSELossBackword(net.output, gold, lossGrad);
-		_RectifyBackward(&net.hidden_state5, &net.hidden_state4, &lossGrad, &dedb2);
 
+		_RectifyBackward(&net.output, &net.hidden_state5, &lossGrad, &dedb2);
 
-		MatrixMul(net.hidden_state5, X_TRANS, lossGrad, X_NOTRANS, dedw2);
+		MatrixMul(net.hidden_state3, X_TRANS, dedb2, X_NOTRANS, dedw2);
 
-		/*
-		MSELossBackword(net.output, gold, lossGrad);
-		MatrixMul(net.hidden_state3, X_TRANS, lossGrad, X_NOTRANS, dedw2);
-		XTensor dedy = MatrixMul(lossGrad, X_NOTRANS, model.weight2, X_TRANS);
-		_RectifyBackward(&net.hidden_state3, &net.hidden_state2, &dedy, &dedb);
-		dedw1 = MatrixMul(input, X_NOTRANS, dedb, X_TRANS);
-		*/
+		XTensor dedy2 = MatrixMul(dedb2, X_NOTRANS, model.weight2, X_TRANS);
+
+		_RectifyBackward(&net.hidden_state3, &net.hidden_state2, &dedy2, &dedb1);
+
+		MatrixMul(dedb1, X_NOTRANS, model.weight1, X_TRANS, dedw1);
+		printf("反向传播结束：\n");
 	}
 
 	void Update(XOROperateModel &model, XOROperateModel &grad, float learningRate)    //更新训练模型
 	{
-		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);	//上一次的权重加本次训练的权重，最后减掉训练后的学习率
+		printf("1");
+		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);
+		printf("2");
 		model.weight2 = Sum(model.weight2, grad.weight2, -learningRate);
+		printf("3");
 		model.b1 = Sum(model.b1, grad.b1, -learningRate);
+		printf("4");
 		model.b2 = Sum(model.b2, grad.b2, -learningRate);
 	}
 
@@ -248,5 +246,19 @@ namespace xorOperate
 		grad.weight2.SetZeroAll();
 	}
 
+	void Test(float *testData, int testDataSize, XOROperateModel &model)	//使用模型进行预测
+	{
+		XOROperateNet net;
+		XTensor*  inputData = NewTensor2D(1, 1, X_FLOAT, model.devID);
+		for (int i = 0; i < testDataSize; ++i)
+		{
 
+			inputData->Set2D(testData[i] / 100, 0, 0);
+
+			Forword(*inputData, model, net);
+			float ans = net.output.Get2D(0, 0) * 60;
+			printf("%f\n", ans);
+		}
+
+	}
 }
