@@ -220,30 +220,19 @@ namespace xorOperate
 
 	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//º∆À„À ß
 	{
-		/*
-		XTensor tmp = output - gold;
-		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
-		*/
 		loss = CrossEntropy(output, gold);
 	}
 
 	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		
 	{
-		/*
 		_CrossEntropyBackward(&grad, &output, &gold);
-		*/
-
-		grad = CrossEntropy(output,gold);
-
-		/*
-		XTensor tmp = output - gold;
-		grad = tmp * 2;
-		*/
+		
 	}
 
 	void Backward(XTensor &input, XTensor &gold, XOROperateModel &model, XOROperateModel &grad, XOROperateNet &net) 
 	{
 		XTensor lossGrad;
+		InitTensor2D(&lossGrad, 1, 8, X_FLOAT, model.devID);
 		XTensor &dedb2 = grad.b2;
 		XTensor &dedw2 = grad.weight2;
 		XTensor &dedb1 = grad.b1;
