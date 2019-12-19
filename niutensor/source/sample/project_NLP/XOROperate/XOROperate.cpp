@@ -8,7 +8,7 @@ namespace xorOperate
 {
 
 	float learningRate = 0.01F;            // learning rate
-	int nEpoch = 50000;                     // 训练次数
+	int nEpoch = 100;                     // 训练次数
 	/*todo 修改损失函数方法*/
 	float minmax = 0.01F;                 // range [-p,p] for parameter initialization
 	
@@ -44,7 +44,7 @@ namespace xorOperate
 				trainDataX[i * 8 + j][2] = dic_data[i][2];
 				trainDataX[i * 8 + j][3] = dic_data[j][0];
 				trainDataX[i * 8 + j][4] = dic_data[j][1];
-				trainDataX[i * 8 + j][5] = dic_data[j][2];// 后三位为j
+				trainDataX[i * 8 + j][5] = dic_data[j][2];		// 后三位为j
 			}
 		}
 	
@@ -126,11 +126,11 @@ namespace xorOperate
 				XTensor loss;
 				MSELoss(net.output, *gold, loss);	//计算误差
 				totalLoss += loss.Get1D(0);
-				printf("准备反向\n");
+
 				Backward(*input, *gold, model, grad, net);
-				printf("准备更新\n");
+
 				Update(model, grad, learningRate);
-				printf("准备清理\n");
+
 				CleanGrad(grad);
 
 			}
@@ -146,12 +146,39 @@ namespace xorOperate
 											 {1,1,1,1,1,0} ,
 											 {1,1,1,0,0,0} }; //测试集
 
+		float testDataY[testDataSize][6] = { {0,0,0} ,
+											 {0,1,1} ,
+											 {1,1,0} ,
+											 {0,0,1} ,
+											 {1,1,1} }; //测试集
 
-		Test(testDataX, testDataSize, model);				//使用模型进行预测
+
+		int num_result = 0;
+		for (int i = 0; i < testDataSize; ++i)
+		{
+			XTensor*  inputTestData = NewTensor2D(1, 6, X_FLOAT, model.devID);
+
+			for (int j = 0; j < 6; ++j)
+			{
+				inputTestData->Set2D(testDataX[i][j], 0, j);
+			}
+			Forword(*inputTestData, model, net);
+			printf("%f,%f,%f\n",net.output.Get2D(0, 0), net.output.Get2D(0, 1), net.output.Get2D(0, 2));
+
+			/*
+			bool result1 = (((net.output.Get2D(0, 0) - testDataY[i][0]) < 0.5 )|| (testDataY[i][0] - (net.output.Get2D(0, 0)) < 0.5)) ? true:false;
+			bool result2 = (((net.output.Get2D(0, 1) - testDataY[i][1]) < 0.5) || (testDataY[i][1] - (net.output.Get2D(0, 1)) < 0.5)) ? true : false;
+			bool result3 = (((net.output.Get2D(0, 2) - testDataY[i][2]) < 0.5) || (testDataY[i][2] - (net.output.Get2D(0, 2)) < 0.5)) ? true : false;
+			if (result1 && result2 && result3)
+			{
+				num_result++;
+			}
+			*/
+		}
+
+
 		return 0;
 
-
-		return 0;
 	}
 
 	void Init(XOROperateModel &model)
@@ -165,7 +192,8 @@ namespace xorOperate
 		
 		model.weight1.SetDataRand(-minmax, minmax);		
 		model.weight2.SetDataRand(-minmax, minmax);
-		//model.b.SetZeroAll();	
+		model.b1.SetZeroAll();	
+		model.b2.SetZeroAll();
 		
 		printf("Initialization  complete.\n");
 	}
@@ -192,15 +220,25 @@ namespace xorOperate
 
 	void MSELoss(XTensor &output, XTensor &gold, XTensor &loss)		//计算损失
 	{
+		/*
 		XTensor tmp = output - gold;
 		loss = ReduceSum(tmp, 1, 2) / output.dimSize[1];
-
+		*/
+		loss = CrossEntropy(output, gold);
 	}
 
 	void MSELossBackword(XTensor &output, XTensor &gold, XTensor &grad)		
 	{
+		/*
+		_CrossEntropyBackward(&grad, &output, &gold);
+		*/
+
+		grad = CrossEntropy(output,gold);
+
+		/*
 		XTensor tmp = output - gold;
 		grad = tmp * 2;
+		*/
 	}
 
 	void Backward(XTensor &input, XTensor &gold, XOROperateModel &model, XOROperateModel &grad, XOROperateNet &net) 
@@ -222,19 +260,19 @@ namespace xorOperate
 
 		_RectifyBackward(&net.hidden_state3, &net.hidden_state2, &dedy2, &dedb1);
 
-		MatrixMul(dedb1, X_NOTRANS, model.weight1, X_TRANS, dedw1);
-		printf("反向传播结束：\n");
+		MatrixMul(input, X_TRANS, dedb1, X_NOTRANS, dedw1);
+
 	}
 
 	void Update(XOROperateModel &model, XOROperateModel &grad, float learningRate)    //更新训练模型
 	{
-		printf("1");
+
 		model.weight1 = Sum(model.weight1, grad.weight1, -learningRate);
-		printf("2");
+
 		model.weight2 = Sum(model.weight2, grad.weight2, -learningRate);
-		printf("3");
+
 		model.b1 = Sum(model.b1, grad.b1, -learningRate);
-		printf("4");
+
 		model.b2 = Sum(model.b2, grad.b2, -learningRate);
 	}
 
@@ -246,19 +284,4 @@ namespace xorOperate
 		grad.weight2.SetZeroAll();
 	}
 
-	void Test(float *testData, int testDataSize, XOROperateModel &model)	//使用模型进行预测
-	{
-		XOROperateNet net;
-		XTensor*  inputData = NewTensor2D(1, 1, X_FLOAT, model.devID);
-		for (int i = 0; i < testDataSize; ++i)
-		{
-
-			inputData->Set2D(testData[i] / 100, 0, 0);
-
-			Forword(*inputData, model, net);
-			float ans = net.output.Get2D(0, 0) * 60;
-			printf("%f\n", ans);
-		}
-
-	}
 }
